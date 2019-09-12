@@ -1,5 +1,6 @@
 var bodyParser  =   require("body-parser"),
 mongoose        =   require("mongoose"),
+expressSanitizer =require("express-sanitizer"),
 methodOveride=require("method-override"),
 express         =   require("express"),
 app             =   express();
@@ -8,6 +9,7 @@ mongoose.connect('mongodb://localhost:27017/blog_app', {useNewUrlParser: true, u
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({extended:true}));
+app.use(expressSanitizer());
 app.use(methodOveride("_method"));
 
 var blogSchema=new mongoose.Schema({
@@ -54,6 +56,7 @@ app.get("/blogs/new",function (req,res){
 });
 //create
 app.post("/blogs",function(req,res){
+    req.body.blog.body=req.sanitize(req.body.blog.body);
     Blog.create(req.body.blog,function(err,newBlog){
         if(err)
         {
@@ -93,6 +96,7 @@ app.get("/blogs/:id/edit",function(req,res){
 })
 //update
 app.put("/blogs/:id",function(req,res){
+    req.body.blog.body=req.sanitize(req.body.blog.body);
     Blog.findByIdAndUpdate(req.params.id,req.body.blog,function(err,updatedBlog){
         if(err)
         {
@@ -117,7 +121,7 @@ app.delete("/blogs/:id",function(req,res){
         }
     });
 })
-
 app.listen(3000,function(){
     console.log("server is running");
 })
+
